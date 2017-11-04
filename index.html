@@ -49,6 +49,74 @@
         <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
       </div>
 
+
     </main>
+
+    <script>
+        var openRequest = window.indexedDB.open('playTasks', 1);
+
+        openRequest.onupgradeneeded = e => {
+          var minhaConnection = e.target.result;
+
+          if(minhaConnection.objectStoreNames.contains('contatos')) {
+            console.log('aqui')
+            minhaConnection.deleteObjectStore('contatos');
+          }
+
+          minhaConnection.createObjectStore('contatos', { autoIncrement: true, keyPath: "id" });
+        };
+
+        openRequest.onsuccess = e => {
+          connection = e.target.result;
+        };
+
+        openRequest.onerror = e => {
+          console.log(e.target.error);
+        };
+
+        function adiciona() {
+          let transaction = connection.transaction(['contatos'], 'readwrite');
+          let store = transaction.objectStore('contatos');
+          let contatos = [
+                          {id: 1, nome: "andre", email: "andreluizleoni@gmail.com"},
+                          {id: 2, nome: "salete", email: "salete@gmail.com"}
+                          ];
+
+          contatos.forEach(function(contato) {
+            let request = store.add(contato);
+            request.onsuccess = e => {
+              console.log("Incluido com sucesso!");
+            }
+
+            request.onerror = e => {
+              console.log("Ocorreu um problema para adicionar o contato: ");
+              console.log(e.target.error);
+            }
+          });
+        }
+
+        function listaTodos() {
+          let transaction = connection.transaction(['contatos'], 'readwrite');
+          let store = transaction.objectStore('contatos');
+          let cursor = store.openCursor();
+          let contatos = [];
+
+          cursor.onsuccess = e => {
+            let atual = e.target.result;
+
+            if (atual) {
+              contatos.push(atual.value);
+              atual.continue();
+            } else {
+              console.log(contatos);
+            }
+          }
+
+          cursor.onerror = e => {
+            console.log("Ocorreu um problema para adicionar o contato: " + e.target.name);
+          }
+        }
+
+    </script>
   </body>
 </html>
