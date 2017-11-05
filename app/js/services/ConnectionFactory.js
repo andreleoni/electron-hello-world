@@ -1,8 +1,10 @@
 var ConnectionFactory = (function() {
-  var stores = ['contatos']
-  var version = 1;
-  var dbName = 'playTasks';
+  const stores = ['contatos']
+  const version = 1;
+  const dbName = 'playTasks';
+
   var connection = null;
+  var close = null;
 
   return class ConnectionFactory {
     constructor() {
@@ -18,7 +20,16 @@ var ConnectionFactory = (function() {
         };
 
         openRequest.onsuccess = e => {
-          if(!connection) connection = e.target.result;
+          if(!connection) {
+            connection = e.target.result;
+
+            close = connection.close.bind(connection);
+
+            connection.close = function() {
+              throw new Error('Você nao pode fechar a coneção');
+            }
+          }
+
           resolve(connection);
         };
 
@@ -36,6 +47,13 @@ var ConnectionFactory = (function() {
 
         connection.createObjectStore(store, { autoIncrement: true, keyPath: "id" });
       });
+    }
+
+    static closeConnection() {
+      if (connection) {
+        close();
+        connection = null;
+      }
     }
   }
 })();
