@@ -1,101 +1,69 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>Negociações</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.css">
+    <script src="js/app/polyfill/es6.js"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+</head>
+<body class="container">
 
-  </head>
-  <body>
+    <h1 class="text-center">Negociações</h1>
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-      <a class="navbar-brand" href="#">Navbar</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <div id="mensagemView"></div>
 
-      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled" href="#">Disabled</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown01">
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-        </ul>
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
-      </div>
-    </nav>
+    <form class="form" onsubmit="negociacaoController.adiciona(event)">
 
-    <main role="main" class="container">
+        <div class="form-group">
+            <label for="data">Data</label>
+            <input type="text" placeholder="dd/mm/aaaa" id="data" class="form-control" required autofocus/>
+        </div>
 
-      <div class="starter-template">
-        <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
-      </div>
+        <div class="form-group">
+            <label for="quantidade">Quantidade</label>
+            <input type="number" min="1" step="1" id="quantidade" class="form-control" value="1" required/>
+        </div>
 
+        <div class="form-group">
+            <label for="valor">Valor</label>
+            <input id="valor" type="number" class="form-control"  min="0.01" step="0.01" value="0.0" required />
+        </div>
 
-    </main>
-    <script src="app/js/services/ConnectionFactory.js"></script>
+        <button class="btn btn-primary" type="submit">Incluir</button>
+    </form>
+
+    <div class="text-center">
+        <button onclick="negociacaoController.importaNegociacoes()" class="btn btn-primary text-center" type="button">
+            Importar Negociações
+        </button>
+        <button onclick="negociacaoController.apaga()" class="btn btn-primary text-center" type="button">
+            Apagar
+        </button>
+    </div>
+    <br>
+    <br>
+
+    <div id="negociacoesView"></div>
+
+    <script src="js/app/models/Negociacao.js"></script>
+    <script src="js/app/controllers/NegociacaoController.js"></script>
+    <script src="js/app/helpers/DateHelper.js"></script>
+    <script src="js/app/models/ListaNegociacoes.js"></script>
+    <script src="js/app/views/View.js"></script>
+    <script src="js/app/views/NegociacoesView.js"></script>
+    <script src="js/app/models/Mensagem.js"></script>
+    <script src="js/app/views/MensagemView.js"></script>
+    <script src="js/app/services/ProxyFactory.js"></script>
+    <script src="js/app/helpers/Bind.js"></script>
+    <script src="js/app/services/NegociacaoService.js"></script>
+    <script src="js/app/services/HttpService.js"></script>
+    <script src="js/app/services/ConnectionFactory.js"></script>
+    <script src="js/app/dao/NegociacaoDao.js"></script>
     <script>
-        function adiciona() {
-          let transaction = connection.transaction(['contatos'], 'readwrite');
-          let store = transaction.objectStore('contatos');
-          let contatos = [
-                          {id: 1, nome: "andre", email: "andreluizleoni@gmail.com"},
-                          {id: 2, nome: "salete", email: "salete@gmail.com"}
-                          ];
-
-          contatos.forEach(function(contato) {
-            let request = store.add(contato);
-            request.onsuccess = e => {
-              console.log("Incluido com sucesso!");
-            }
-
-            request.onerror = e => {
-              console.log("Ocorreu um problema para adicionar o contato: ");
-              console.log(e.target.error);
-            }
-          });
-        }
-
-        function listaTodos() {
-          let transaction = connection.transaction(['contatos'], 'readwrite');
-          let store = transaction.objectStore('contatos');
-          let cursor = store.openCursor();
-          let contatos = [];
-
-          cursor.onsuccess = e => {
-            let atual = e.target.result;
-
-            if (atual) {
-              contatos.push(atual.value);
-              atual.continue();
-            } else {
-              console.log(contatos);
-            }
-          }
-
-          cursor.onerror = e => {
-            console.log("Ocorreu um problema para adicionar o contato: " + e.target.name);
-          }
-        }
-
+        var negociacaoController = new NegociacaoController();
     </script>
-  </body>
+
+</body>
 </html>
